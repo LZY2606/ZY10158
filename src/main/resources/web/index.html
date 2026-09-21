@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>CAN / ISO-TP 帧级回放与诊断</title>
+<link rel="stylesheet" href="/web/app.css"/>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">CAN/ISO-TP <span>帧级回放 · 重组 · 诊断</span></div>
+  <div class="controls">
+    <label>捕获文件
+      <select id="captureSelect"></select>
+    </label>
+    <button id="importBtn" class="btn">导入捕获</button>
+    <input type="file" id="importFile" hidden/>
+    <span id="hashInfo" class="hash"></span>
+  </div>
+</header>
+
+<section class="playbar">
+  <button id="stepBack" class="btn">⏮ 起点</button>
+  <button id="stepPrev" class="btn">◀ 上一帧</button>
+  <button id="playBtn" class="btn primary">▶ 回放</button>
+  <button id="stepNext" class="btn">下一帧 ▶</button>
+  <input type="range" id="playhead" min="0" max="0" value="0"/>
+  <span class="clock" id="clockText">虚拟时钟 0.000000s</span>
+  <label class="speed">速度
+    <select id="speedSel">
+      <option value="50">0.5x</option>
+      <option value="20" selected>1x</option>
+      <option value="5">4x</option>
+      <option value="0">瞬时</option>
+    </select>
+  </label>
+  <span class="spacer"></span>
+  <button id="resetBoundaryBtn" class="btn warn" title="在当前帧后插入人工重启边界">标记重启边界</button>
+</section>
+
+<main class="layout">
+  <div class="col frames">
+    <h2>原始帧时间线（永久只读）</h2>
+    <div class="tablewrap">
+      <table id="frameTable">
+        <thead>
+          <tr>
+            <th>#</th><th>时间(s)</th><th>CAN ID</th><th>方向</th><th>代次</th>
+            <th>PCI</th><th>数据</th><th>SN</th><th>重组</th><th>标记</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="col right">
+    <div class="tabs">
+      <button class="tab active" data-tab="asm">重组状态机</button>
+      <button class="tab" data-tab="links">请求/响应</button>
+      <button class="tab" data-tab="gens">ECU 代次</button>
+      <button class="tab" data-tab="diag">错误诊断</button>
+      <button class="tab" data-tab="conflicts">判定冲突 <em id="conflictBadge">0</em></button>
+    </div>
+
+    <div class="tabpanel active" id="tab-asm">
+      <div id="asmList" class="cards"></div>
+    </div>
+    <div class="tabpanel" id="tab-links">
+      <div id="linkList" class="cards"></div>
+    </div>
+    <div class="tabpanel" id="tab-gens">
+      <div id="genList" class="cards"></div>
+    </div>
+    <div class="tabpanel" id="tab-diag">
+      <div id="diagList" class="cards"></div>
+    </div>
+    <div class="tabpanel" id="tab-conflicts">
+      <div id="conflictList" class="cards"></div>
+    </div>
+  </div>
+</main>
+
+<dialog id="frameDialog">
+  <article>
+    <h3>帧人工判定 <small id="dlgFrameSeq"></small></h3>
+    <p class="muted" id="dlgFrameMeta"></p>
+    <label class="check"><input type="checkbox" id="dlgRejected"/> 拒绝该帧（污染帧，不参与重组）</label>
+    <input type="text" id="dlgReason" placeholder="拒绝原因（可选）"/>
+    <label>角色修正
+      <select id="dlgRole">
+        <option value="">不修正（按文件标注）</option>
+        <option value="REQ">REQ（请求数据流）</option>
+        <option value="RESP">RESP（响应数据流）</option>
+      </select>
+    </label>
+    <div class="dlg-actions">
+      <span class="version">版本 <b id="dlgVersion">-</b></span>
+      <button class="btn" id="dlgCancel">取消</button>
+      <button class="btn primary" id="dlgSave">保存判定</button>
+    </div>
+  </article>
+</dialog>
+
+<div id="toast" class="toast"></div>
+<script src="/web/app.js"></script>
+</body>
+</html>
