@@ -1,0 +1,21 @@
+# Fixture 2: timeout endpoints, half-open windows [0, N_Bs]/[0, N_CR].
+# N_BS = N_CR = 100 ms.
+#
+# A) FF at t=0, flow control exactly at t=100 -> ON TIME (closed endpoint valid).
+#    14-byte payload = 6 FF bytes + 7 CF1 + 1 CF2 byte; completes normally.
+0   7E8 RX 10 0E 00 00 00 00 00 00
+100 7E0 TX 30 00 00 00 00 00 00 00
+120 7E8 RX 21 01 02 03 04 05 06 07
+140 7E8 RX 22 08 09 0A 0B 0C 0D 0E
+#
+# B) FF at t=1000, FC at t=1101 -> N_Bs TIMEOUT (1 ms past endpoint).
+1000 7E8 RX 10 0A B0 B1 B2 B3 B4 B5
+1101 7E0 TX 30 00 00 00 00 00 00 00
+1120 7E8 RX 21 11 22 33 44 55 66 77
+#
+# C) FF at t=2000, FC at t=2050 (fine), CF1 at t=2150 exactly 100ms gap -> ON TIME,
+#    CF2 at t=2251 (101ms gap) -> N_Cr TIMEOUT, transfer stays incomplete.
+2000 7E8 RX 10 12 C0 C1 C2 C3 C4 C5
+2050 7E0 TX 30 00 00 00 00 00 00 00
+2150 7E8 RX 21 D0 D1 D2 D3 D4 D5 D6
+2251 7E8 RX 22 E0 E1 E2 E3 E4 E5 E6

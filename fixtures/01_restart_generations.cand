@@ -1,0 +1,12 @@
+# Fixture 1: ECU restart -> new generation on the same CAN IDs.
+# Gen 0: TesterPresent handshake.
+100 7E0 TX 02 10 03 00 00 00 00 00
+110 7E8 RX 02 50 03 00 00 00 00 00
+140 7E0 TX 02 3E 00 00 00 00 00 00
+150 7E8 RX 02 7E 00 00 00 00 00 00
+# restart at=500 id=7E8 note="ECU power cycle (battery reconnect)"
+# restart at=500 id=7E0 note="ECU power cycle (battery reconnect)"
+# Gen 1: same service ids, must not pair with gen 0 requests.
+520 7E0 TX 02 10 03 00 00 00 00 00
+535 7E8 RX 02 50 03 00 00 00 00 00
+560 7E8 RX 02 7E 00 00 00 00 00 00

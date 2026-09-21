@@ -1,0 +1,19 @@
+# Fixture 5: request/response pairing hazards.
+#
+# A) answered request.
+0   7E0 TX 02 3E 01 00 00 00 00 00
+20  7E8 RX 02 7E 01 00 00 00 00 00
+#
+# B) unanswered request (no response within P2 = 500 ms).
+100 7E0 TX 03 22 F1 90 00 00 00 00
+#
+# C) duplicate request, one response -> 2 session candidates, tentatively newest.
+300 7E0 TX 02 3E 00 00 00 00 00 00
+320 7E0 TX 02 3E 00 00 00 00 00 00
+340 7E8 RX 02 7E 00 00 00 00 00 00
+#
+# D) stale replayed response: same SID as an old exchange but no open request in window.
+1500 7E8 RX 02 7E 01 00 00 00 00 00
+#
+# E) orphan response for a service never requested at all -> orphan, not replay.
+2000 7E8 RX 03 7F 11 12 00 00 00 00

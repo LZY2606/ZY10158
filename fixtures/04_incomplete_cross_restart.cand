@@ -1,0 +1,17 @@
+# Fixture 4: incomplete multi-frame payload: missing CF index + truncation across restart.
+# Bytes/indices received are preserved with explicit missing index list; never faked complete.
+#
+# A) FF + CF1 + CF3 (index 2 dropped on the bus) -> INCOMPLETE, missing=[2].
+0   7E0 TX 03 19 02 08 00 00 00 00
+5   7E8 RX 10 1B 59 02 08 01 02 03
+15  7E0 TX 30 00 00 00 00 00 00 00
+25  7E8 RX 21 04 05 06 07 08 09 0A
+# index 2 missing entirely
+55  7E8 RX 23 12 13 14 15 16 17 18
+#
+# B) transfer open when the ECU restarts: cross-restart frames must never be concatenated.
+300 7E8 RX 10 0F B0 B1 B2 B3 B4 B5
+310 7E0 TX 30 00 00 00 00 00 00 00
+320 7E8 RX 21 01 02 03 04 05 06 07
+# restart at=400 note="ECU reset mid-transfer"
+500 7E8 RX 22 08 09 0A 0B 0C 0D 0E

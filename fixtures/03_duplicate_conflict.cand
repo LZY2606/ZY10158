@@ -1,0 +1,19 @@
+# Fixture 3: retransmitted identical CF (kept as evidence, no data duplication) vs
+# same sequence index with conflicting payload (hard conflict, later never overwrites).
+#
+# 20-byte ReadDataByIdentifier response; CF index 1 arrives twice identically.
+0   7E0 TX 03 22 F1 90 00 00 00 00
+5   7E8 RX 10 14 62 F1 90 41 55 44
+15  7E0 TX 30 00 00 00 00 00 00 00
+25  7E8 RX 21 49 56 31 32 33 34 35
+# retransmit of index 1, same bytes: accepted as evidence only
+28  7E8 RX 21 49 56 31 32 33 34 35
+45  7E8 RX 22 36 37 38 39 30 41 42
+#
+# Conflict scenario: 20-byte response where index 1 changes payload mid-transfer.
+200 7E0 TX 03 22 F1 8C 00 00 00 00
+205 7E8 RX 10 14 62 F1 8C 01 02 03
+215 7E0 TX 30 00 00 00 00 00 00 00
+225 7E8 RX 21 04 05 06 07 08 09 0A
+# same index 1 with different payload while transfer still open -> ISO_SEQUENCE_CONFLICT
+245 7E8 RX 21 FF EE DD CC BB AA 99

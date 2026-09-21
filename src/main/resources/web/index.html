@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CAN 诊断帧分析台</title>
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <h1>CAN 诊断帧分析台</h1>
+  <div class="top-actions">
+    <label class="file-btn">导入 .cand 捕获文件
+      <input type="file" id="importFile" accept=".cand,.txt,text/plain" hidden>
+    </label>
+    <button id="rerunBtn" title="以当前人工判定重跑重组（不覆盖已审核结果）">重跑重组</button>
+    <span id="clock" class="clock">虚拟时钟 --</span>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="sidebar">
+    <section>
+      <h2>捕获</h2>
+      <select id="captureSelect"></select>
+      <div id="captureMeta" class="meta"></div>
+    </section>
+    <section>
+      <h2>虚拟时钟</h2>
+      <div class="row">
+        <button id="clockManual">手动时钟</button>
+        <button id="clockSystem">系统时钟</button>
+      </div>
+      <div class="row" id="manualClockControls" hidden>
+        <button id="clockStep">+100ms</button>
+        <input type="number" id="clockSet" placeholder="设置 t(ms)" min="0" style="width:110px">
+        <button id="clockApply">设置</button>
+      </div>
+      <div class="meta" id="clockMode">模式：SYSTEM</div>
+    </section>
+    <section>
+      <h2>回放控制</h2>
+      <input type="range" id="timeline" min="0" max="1000" value="1000" disabled>
+      <div class="row">
+        <button id="playBtn" disabled>▶ 播放</button>
+        <button id="stepBtn" disabled>单帧</button>
+        <button id="resetBtn" disabled>复位</button>
+        <label class="speed">速度 <select id="speed">
+          <option value="4">0.25x</option>
+          <option value="1" selected>1x</option>
+          <option value="0.25">4x</option>
+        </select></label>
+      </div>
+      <div class="row"><span id="replayPos" class="meta">t = -- ms</span></div>
+    </section>
+    <section>
+      <h2>重启边界</h2>
+      <div id="boundaryList" class="boundary-list"></div>
+      <form id="boundaryForm" class="compact">
+        <input type="number" id="bOffset" placeholder="offset ms" min="0" required>
+        <input type="text" id="bScope" placeholder="CAN ID 可空 (如 7E8)" pattern="[0-9a-fA-F]{1,3}">
+        <input type="text" id="bNote" placeholder="备注">
+        <button type="submit">标记重启</button>
+      </form>
+    </section>
+    <section>
+      <h2>过滤</h2>
+      <label><input type="checkbox" id="fErrors" checked> 只看有诊断的代次</label>
+      <input type="text" id="fText" placeholder="CAN ID / SID / 关键字">
+    </section>
+  </aside>
+
+  <main class="content">
+    <section class="panel">
+      <h2>原始帧时间线 <small>L0 · 永久只读</small></h2>
+      <div class="table-wrap">
+        <table id="frameTable">
+          <thead><tr>
+            <th>#</th><th>t (ms)</th><th>CAN ID</th><th>方向</th><th>类型</th>
+            <th>代次</th><th>数据</th><th>审核</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <div class="two-col">
+      <section class="panel">
+        <h2>重组状态机 / 载荷 <small>L1</small></h2>
+        <div id="messageList" class="message-list"></div>
+      </section>
+      <section class="panel">
+        <h2>错误诊断 <small>状态 + 异常分类</small></h2>
+        <div id="diagList" class="diag-list"></div>
+      </section>
+    </div>
+
+    <section class="panel" id="pairingPanel">
+      <h2>请求 / 响应 与代次</h2>
+      <div id="pairingView"></div>
+    </section>
+  </main>
+</div>
+
+<dialog id="frameDialog">
+  <form method="dialog" id="frameReviewForm">
+    <h3>帧人工判定 · L2 版本化</h3>
+    <p id="frameDialogInfo" class="meta"></p>
+    <label><input type="checkbox" id="rvRejected"> 拒绝此污染帧（保留 L0，重排时排除）</label>
+    <label>方向修正
+      <select id="rvRole">
+        <option value="">保持文件方向</option>
+        <option value="TX">TX（诊断仪发送）</option>
+        <option value="RX">RX（ECU 发送）</option>
+      </select>
+    </label>
+    <label>备注 <input type="text" id="rvNote"></label>
+    <input type="hidden" id="rvVersion">
+    <p class="conflict" id="rvConflict" hidden></p>
+    <menu>
+      <button value="cancel">取消</button>
+      <button id="rvSave" value="save">保存判定</button>
+    </menu>
+  </form>
+</dialog>
+
+<dialog id="attrDialog">
+  <form method="dialog" id="attrForm">
+    <h3>会话归属仲裁</h3>
+    <p id="attrInfo" class="meta"></p>
+    <div id="attrChoices"></div>
+    <label><input type="checkbox" id="attrKeepBoth"> 保留两个会话候选（不自动配对）</label>
+    <label>备注 <input type="text" id="attrNote"></label>
+    <input type="hidden" id="attrVersion">
+    <p class="conflict" id="attrConflict" hidden></p>
+    <menu>
+      <button value="cancel">取消</button>
+      <button id="attrSave" value="save">保存仲裁</button>
+    </menu>
+  </form>
+</dialog>
+
+<script src="/app.js"></script>
+</body>
+</html>
